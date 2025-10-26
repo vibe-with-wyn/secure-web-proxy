@@ -1,17 +1,17 @@
 {
   "name": "secure-web-proxy",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Learning project: secure HTTPS forward proxy (built step-by-step).",
+  "main": "dist/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["proxy", "https", "connect", "learning"],
+  "author": "Wyndale",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^24.9.1",
     "tsx": "^4.20.6",
