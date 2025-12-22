@@ -1,9 +1,44 @@
 import http from 'http';
 import net from 'net';
 import { AddressInfo } from 'net';
+import https from 'https';
+import fs from 'fs';
 
-const PORT = Number(process.env.PORT || 8080);
-const HOST = '127.0.0.1'; // local-only for Step 1
+const TLS_KEY = process.env.PROXY_TLS_KEY;
+const TLS_CERT = process.env.PROXY_TLS_CERT;
+const USE_TLS = !!(TLS_KEY && TLS_CERT);
+
+// Replace previous PORT and HOST with:
+const PORT = Number(process.env.PORT || (USE_TLS ? 8443 : 8080));
+const HOST = process.env.HOST || '127.0.0.1'; // local-only by default
+
+// Replace the existing server initialization with a conditional HTTPS/HTTP server:
+const server: http.Server | https.Server = USE_TLS
+  ? https.createServer(
+      { key: fs.readFileSync(TLS_KEY!), cert: fs.readFileSync(TLS_CERT!) },
+      (req, res) => {
+        // Health check
+        if (req.method === 'GET' && req.url === '/health') {
+          res.writeHead(200, { 'content-type': 'text/plain' });
+          res.end('ok');
+          return;
+        }
+        // Only /health is allowed in Step 2. All other HTTP methods -> 405.
+        res.writeHead(405, { 'content-type': 'text/plain' });
+        res.end('Method Not Allowed');
+      }
+    )
+  : http.createServer((req, res) => {
+      // Health check
+      if (req.method === 'GET' && req.url === '/health') {
+        res.writeHead(200, { 'content-type': 'text/plain' });
+        res.end('ok');
+        return;
+      }
+      // Only /health is allowed in Step 1. All other HTTP methods -> 405.
+      res.writeHead(405, { 'content-type': 'text/plain' });
+      res.end('Method Not Allowed');
+    });
 
 function parseHostPort(authority: string): { host: string; port: number } | null {
   // Accepts "host:port" or "[ipv6]:port" or "host" (defaults to 443)
@@ -30,20 +65,7 @@ function parseHostPort(authority: string): { host: string; port: number } | null
   return { host, port };
 }
 
-const server = http.createServer((req, res) => {
-  // Health check
-  if (req.method === 'GET' && req.url === '/health') {
-    res.writeHead(200, { 'content-type': 'text/plain' });
-    res.end('ok');
-    return;
-  }
-
-  // Only /health is allowed in Step 1. All other HTTP methods -> 405.
-  res.writeHead(405, { 'content-type': 'text/plain' });
-  res.end('Method Not Allowed');
-});
-
-// HTTPS tunneling via CONNECT
+// HTTPS tunneling via CONNECT (unchanged behavior, just agent name)
 server.on('connect', (req: http.IncomingMessage, clientSocket: net.Socket, head: Buffer) => {
   const authority = req.url || '';
   const parsed = parseHostPort(authority);
@@ -70,7 +92,7 @@ server.on('connect', (req: http.IncomingMessage, clientSocket: net.Socket, head:
     // Acknowledge tunnel to client
     clientSocket.write(
       'HTTP/1.1 200 Connection Established\r\n' +
-      'Proxy-Agent: swp-step1\r\n' +
+      'Proxy-Agent: swp-step2\r\n' +
       '\r\n'
     );
 
@@ -108,8 +130,9 @@ server.on('connect', (req: http.IncomingMessage, clientSocket: net.Socket, head:
   });
 });
 
-// Startup
+// Startup (log correct scheme)
 server.listen(PORT, HOST, () => {
   const addr = server.address() as AddressInfo;
-  console.log(`Step 1 proxy listening on http://${addr.address}:${addr.port} (CONNECT + /health). Local-only.`);
+  const scheme = USE_TLS ? 'https' : 'http';
+  console.log(`Step ${USE_TLS ? '2 (TLS)' : '1'} proxy listening on ${scheme}://${addr.address}:${addr.port} (CONNECT + /health). Local-only.`);
 });
