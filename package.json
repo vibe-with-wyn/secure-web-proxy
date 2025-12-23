@@ -4,15 +4,19 @@
   "description": "Learning project: secure HTTPS forward proxy (built step-by-step).",
   "main": "dist/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "smoke": "bash scripts/smoke.sh",
     "dev": "tsx watch src/app.ts",
     "dev:https": "PORT=8443 tsx watch src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["proxy", "https", "connect", "learning"],
   "author": "Wyndale",
   "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
   "devDependencies": {
     "@types/node": "^24.9.1",
     "tsx": "^4.20.6",
