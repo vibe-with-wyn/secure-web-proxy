@@ -8,7 +8,7 @@ A learning project that builds an HTTPS forward proxy from scratch in TypeScript
 - **Security**: blocks private IPs (SSRF prevention), uses DoH (DNS privacy), enforces auth
 - **Learning**: hands-on implementation of HTTP CONNECT, TLS, DoH RFC 8484, rate-limiting
 
-## Features (Steps 1-5)
+## Features
 
 - ✅ HTTP CONNECT tunneling (RFC 7231)
 - ✅ Optional TLS (client-to-proxy encryption)
@@ -156,5 +156,6 @@ wait
 MIT - see LICENSE file
 
 ## Credits
+
 
 Built for learning. Uses Node.js built-ins (http, https, net), dotenv for config, TypeScript for type safety.
