@@ -153,9 +153,10 @@ wait
 
 ## License
 
-MIT - see LICENSE file
+Licensed under the MIT License - see [LICENSE](LICENSE) file.
 
 ## Credits
 
 
 Built for learning. Uses Node.js built-ins (http, https, net), dotenv for config, TypeScript for type safety.
+
